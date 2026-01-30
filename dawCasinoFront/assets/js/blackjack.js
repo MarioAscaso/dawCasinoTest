@@ -1,0 +1,433 @@
+/**
+ * BLACKJACK.JS - Versión Final TFG
+ * Incluye: Conexión Backend Perfil, Juego Responsable, Timer y Lógica de Juego
+ */
+
+let currentGameId = null;
+let user = null;
+
+// Variables de Sesión
+let sessionStartBalance = 0;
+let sessionStartTime = null;
+let sessionTimerInterval = null;
+let sessionLimits = {
+    timeMinutes: 60,
+    maxLoss: 500
+};
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// --- INICIALIZACIÓN ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Validar Login
+    const userStored = localStorage.getItem('user');
+    if (!userStored) {
+        window.location.href = 'login.html';
+        return;
+    }
+    user = JSON.parse(userStored);
+    
+    // 2. Cargar preferencias visuales guardadas (Desde el objeto User de BBDD)
+    loadVisualPreferences();
+
+    // El modal de configuración (#setup-modal) se muestra automáticamente por el HTML "active"
+});
+
+
+// --- GESTIÓN DE LA CONFIGURACIÓN (CONEXIÓN CON BACKEND) ---
+
+function randomizeAvatar() {
+    const seed = Math.random().toString(36).substring(7);
+    const url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
+    document.getElementById('preview-avatar').src = url;
+}
+
+async function startSessionConfig() {
+    // 1. Recoger datos del formulario
+    const avatarImg = document.getElementById('preview-avatar').src;
+    const flagVal = document.getElementById('flag-select').value;
+    const timeLimit = parseInt(document.getElementById('limit-time').value) || 60;
+    const lossLimit = parseFloat(document.getElementById('limit-loss').value) || 500;
+    
+    try {
+        // 2. 🔥 LLAMADA AL BACKEND: Guardar en BBDD
+        const response = await fetch(`${CONFIG.API_URL}/users/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: user.id,
+                avatar: avatarImg,      
+                avatarType: flagVal, // Guardamos la bandera aquí
+                dailyLossLimit: lossLimit,
+                sessionTimeLimit: timeLimit
+            })
+        });
+
+        if (!response.ok) throw new Error("Error al guardar perfil");
+
+        // 3. Actualizamos el usuario local con los datos reales de BBDD
+        const updatedUser = await response.json();
+        user = updatedUser;
+        localStorage.setItem('user', JSON.stringify(user));
+
+        // 4. Aplicar configuración visual
+        applyVisualPreferences();
+
+        // 5. Iniciar Variables de Sesión (Juego Responsable Front)
+        sessionLimits.timeMinutes = timeLimit;
+        sessionLimits.maxLoss = lossLimit;
+        sessionStartBalance = user.balance;
+        sessionStartTime = new Date();
+
+        // 6. Cerrar Modal y Arrancar todo
+        document.getElementById('setup-modal').classList.remove('active');
+        updateBalanceDisplay();
+        loadHistory();
+        startTimer();
+
+    } catch (error) {
+        console.error(error);
+        alert("Hubo un problema guardando tu configuración, pero puedes jugar igual.");
+        // Fallback para jugar offline si falla el servidor
+        document.getElementById('setup-modal').classList.remove('active');
+        sessionStartBalance = user.balance;
+        sessionStartTime = new Date();
+        startTimer();
+    }
+}
+
+function loadVisualPreferences() {
+    // Leemos del usuario (que viene de BBDD)
+    if (user.avatar) {
+        document.getElementById('preview-avatar').src = user.avatar;
+    } else {
+        randomizeAvatar();
+    }
+
+    if (user.avatarType) {
+        // Recuperamos la bandera
+        document.getElementById('flag-select').value = user.avatarType;
+    }
+    
+    // Rellenamos los inputs con lo guardado
+    if (user.dailyLossLimit) document.getElementById('limit-loss').value = user.dailyLossLimit;
+    if (user.sessionTimeLimit) document.getElementById('limit-time').value = user.sessionTimeLimit;
+}
+
+function applyVisualPreferences() {
+    // Aplicar Avatar
+    const avatarEl = document.getElementById('header-avatar');
+    if (user.avatar) {
+        avatarEl.src = user.avatar;
+        avatarEl.classList.remove('hidden');
+    }
+
+    // Aplicar Bandera
+    let flagSpan = document.getElementById('header-flag-emoji');
+    if(!flagSpan) {
+        flagSpan = document.createElement('span');
+        flagSpan.id = 'header-flag-emoji';
+        flagSpan.className = 'flag-icon';
+        document.querySelector('.user-profile-display').prepend(flagSpan);
+    }
+    
+    // Si hay bandera (check simple de longitud)
+    if (user.avatarType && user.avatarType.length < 10) { 
+        flagSpan.innerText = user.avatarType;
+        flagSpan.classList.remove('hidden');
+    } else {
+        flagSpan.classList.add('hidden');
+    }
+
+    document.getElementById('username-display').innerText = user.username;
+}
+
+
+// --- LÓGICA DE JUEGO RESPONSABLE (TIMER Y LÍMITES) ---
+
+function startTimer() {
+    sessionTimerInterval = setInterval(() => {
+        const now = new Date();
+        const diffMs = now - sessionStartTime;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffSecs = Math.floor((diffMs % 60000) / 1000);
+
+        const str = `${diffMins.toString().padStart(2, '0')}:${diffSecs.toString().padStart(2, '0')}`;
+        const timerEl = document.getElementById('session-timer');
+        if(timerEl) timerEl.innerText = str;
+
+        if (diffMins >= sessionLimits.timeMinutes) {
+            clearInterval(sessionTimerInterval);
+            alert("⚠️ ¡TIEMPO AGOTADO! ⚠️\nPor tu seguridad, la sesión ha finalizado.");
+            endSession();
+        }
+    }, 1000);
+}
+
+function checkResponsibleGamingLimits(betAmount) {
+    const currentLoss = sessionStartBalance - user.balance;
+    
+    if (currentLoss >= sessionLimits.maxLoss) {
+        alert(`🛑 LÍMITE DE PÉRDIDAS ALCANZADO 🛑\nHas alcanzado tu límite de ${sessionLimits.maxLoss}€. Es hora de descansar.`);
+        endSession();
+        return false;
+    }
+    
+    if ((currentLoss + betAmount) > sessionLimits.maxLoss) {
+        alert(`⚠️ Esta apuesta superaría tu límite de pérdidas (${sessionLimits.maxLoss}€).`);
+        return false;
+    }
+    return true;
+}
+
+
+// --- FUNCIONES PRINCIPALES DEL JUEGO ---
+
+async function startGame() {
+    const betInput = document.getElementById('bet-amount');
+    const bet = parseFloat(betInput.value);
+    const currentBalance = parseFloat(user.balance);
+
+    if (isNaN(bet) || bet < 10) { alert("La apuesta mínima son 10€"); return; }
+    if (bet > currentBalance) { alert("Saldo insuficiente. Usa el botón (+) para ingresar."); return; }
+
+    // 🔥 CHECK: Juego Responsable antes de llamar al servidor
+    if (!checkResponsibleGamingLimits(bet)) return;
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/games/blackjack/start`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, betAmount: bet })
+        });
+
+        await handleErrors(response);
+        const game = await response.json();
+        currentGameId = game.id;
+
+        user.balance = currentBalance - bet; 
+        updateBalanceDisplay();
+        hideStatus();
+        
+        await animateInitialDeal(game);
+        
+        if (game.status !== "PLAYING") {
+             setTimeout(() => finishGame(game), 500);
+        } else {
+             toggleControls(true);
+        }
+
+    } catch (error) {
+        alert("Error al empezar: " + error.message);
+    }
+}
+
+async function playAction(action) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/games/blackjack/play`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId: currentGameId, action: action })
+        });
+        await handleErrors(response);
+        const game = await response.json();
+        
+        if (action === "HIT") {
+            renderGame(game);
+            if (game.status !== "PLAYING") finishGame(game);
+        } else if (action === "STAND") {
+            await animateDealerTurn(game);
+            finishGame(game);
+        }
+    } catch (error) { console.error(error); }
+}
+
+function hit() { playAction("HIT"); }
+function stand() { playAction("STAND"); }
+
+
+// --- RENDERIZADO Y ANIMACIONES ---
+
+async function animateInitialDeal(game) {
+    const pContainer = document.getElementById('player-cards');
+    const dContainer = document.getElementById('dealer-cards');
+    pContainer.innerHTML = ''; dContainer.innerHTML = '';
+    document.getElementById('player-score').innerText = '0';
+    document.getElementById('dealer-score').innerText = '0';
+
+    appendCard(pContainer, game.playerHand.cards[0]); await sleep(400); 
+    appendCard(dContainer, game.dealerHand.cards[0]); 
+    document.getElementById('dealer-score').innerText = calculateSingleCardValue(game.dealerHand.cards[0]); await sleep(400);
+    appendCard(pContainer, game.playerHand.cards[1]); 
+    document.getElementById('player-score').innerText = game.playerHand.score; await sleep(400);
+    appendCardHidden(dContainer);
+}
+
+async function animateDealerTurn(game) {
+    const dContainer = document.getElementById('dealer-cards');
+    const dealerCards = game.dealerHand.cards;
+    dContainer.innerHTML = '';
+    appendCard(dContainer, dealerCards[0]); appendCard(dContainer, dealerCards[1]); 
+    let currentScore = calculatePartialScore([dealerCards[0], dealerCards[1]]);
+    document.getElementById('dealer-score').innerText = currentScore;
+    await sleep(800);
+    for (let i = 2; i < dealerCards.length; i++) {
+        appendCard(dContainer, dealerCards[i]);
+        currentScore = calculatePartialScore(dealerCards.slice(0, i + 1));
+        document.getElementById('dealer-score').innerText = currentScore;
+        await sleep(800);
+    }
+    document.getElementById('dealer-score').innerText = game.dealerHand.score;
+}
+
+function renderGame(game) {
+    const isPlaying = game.status === "PLAYING";
+    drawHand('player-cards', game.playerHand.cards);
+    document.getElementById('player-score').innerText = game.playerHand.score || '?';
+    if (isPlaying) {
+        drawHand('dealer-cards', game.dealerHand.cards, true);
+        if (game.dealerHand.cards.length > 0) {
+             const visibleScore = calculateSingleCardValue(game.dealerHand.cards[0]);
+             document.getElementById('dealer-score').innerText = visibleScore + "+ ?";
+        }
+    } else {
+        drawHand('dealer-cards', game.dealerHand.cards, false);
+        document.getElementById('dealer-score').innerText = game.dealerHand.score;
+    }
+}
+
+function drawHand(elementId, cards, hideSecondCard = false) {
+    const container = document.getElementById(elementId);
+    container.innerHTML = '';
+    cards.forEach((card, index) => {
+        if (hideSecondCard && index === 1) appendCardHidden(container);
+        else appendCard(container, card);
+    });
+}
+
+function appendCard(container, card) {
+    const div = document.createElement('div');
+    const isRed = card.suit === 'HEARTS' || card.suit === 'DIAMONDS';
+    const symbol = getSymbol(card.suit);
+    const rankDisplay = getRankDisplay(card.rank);
+    div.className = `card ${isRed ? 'red' : 'black'} card-appear`;
+    div.innerHTML = `${rankDisplay}${symbol}`; 
+    container.appendChild(div);
+}
+
+function appendCardHidden(container) {
+    const div = document.createElement('div');
+    div.className = `card back card-appear`;
+    container.appendChild(div);
+}
+
+
+// --- FIN DE JUEGO Y UTILIDADES ---
+
+function finishGame(game) {
+    toggleControls(false); 
+    if (game.status === "PLAYER_WINS") { user.balance += (game.betAmount * 2); } 
+    else if (game.status === "DRAW") { user.balance += game.betAmount; }
+    
+    localStorage.setItem('user', JSON.stringify(user));
+    updateBalanceDisplay();
+    
+    setTimeout(() => {
+        const msg = getEndMessage(game);
+        showStatus(msg);
+        setTimeout(loadHistory, 500); 
+    }, 1500);
+}
+
+function getEndMessage(game) {
+    const pScore = game.playerHand.score;
+    const dScore = game.dealerHand.score;
+    if (game.status === "PLAYER_WINS") {
+        if (dScore > 21) return "🏦 BANCA BUST 💥\n¡GANAS TÚ!";
+        if (game.playerHand.blackJack) return "✨ ¡BLACKJACK! ✨";
+        return `🏆 GANASTE 🏆\n(${pScore} vs ${dScore})`;
+    } 
+    if (game.status === "DEALER_WINS") {
+        if (pScore > 21) return "💀 TE PASASTE 💀";
+        if (game.dealerHand.blackJack) return "♠️ BANCA BJ ♠️";
+        return `📉 PIERDES 📉\n(${dScore} vs ${pScore})`;
+    }
+    return "🤝 EMPATE 🤝";
+}
+
+function endSession() {
+    clearInterval(sessionTimerInterval); 
+    const finalBalance = user.balance;
+    const netResult = finalBalance - sessionStartBalance;
+    const timePlayed = document.getElementById('session-timer').innerText;
+
+    document.getElementById('summary-time').innerText = timePlayed;
+    document.getElementById('summary-start').innerText = sessionStartBalance.toFixed(2);
+    document.getElementById('summary-end').innerText = finalBalance.toFixed(2);
+    
+    const resultEl = document.getElementById('summary-result');
+    if (netResult >= 0) {
+        resultEl.className = 'win';
+        resultEl.innerText = `Beneficio: +${netResult.toFixed(2)} € 📈`;
+    } else {
+        resultEl.className = 'lose';
+        resultEl.innerText = `Pérdida: ${netResult.toFixed(2)} € 📉`;
+    }
+    document.getElementById('summary-modal').classList.add('active');
+}
+
+async function depositMoney() {
+    const amountStr = prompt("💰 INGRESO RÁPIDO 💰\n\n¿Cuánto quieres ingresar?");
+    if (!amountStr) return; 
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) { alert("Cantidad inválida"); return; }
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/wallet/deposit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, amount: amount })
+        });
+        await handleErrors(response);
+        const updatedUser = await response.json();
+        user.balance = updatedUser.balance;
+        localStorage.setItem('user', JSON.stringify(user));
+        updateBalanceDisplay();
+        
+        // Ajustamos el saldo inicial de sesión para que el ingreso no cuente como "ganancia" en el resumen
+        sessionStartBalance += amount; 
+
+        alert("Ingreso realizado. ¡Suerte!");
+    } catch (error) { alert("Error al ingresar: " + error.message); }
+}
+
+async function loadHistory() {
+    const container = document.getElementById('history-list');
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/games/history/${user.id}`);
+        if (!response.ok) return;
+        const history = await response.json();
+        container.innerHTML = ''; 
+        if (history.length === 0) { container.innerHTML = '<p style="color:#aaa; font-style:italic;">Sin partidas.</p>'; return; }
+        history.forEach(game => {
+            const div = document.createElement('div');
+            let resultClass = 'draw', symbol = '=';
+            if (game.status === 'PLAYER_WINS') { resultClass = 'win'; symbol = '+'; } 
+            else if (game.status === 'DEALER_WINS') { resultClass = 'lose'; symbol = '-'; }
+            const dateStr = new Date(game.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            div.className = `history-item ${resultClass}`;
+            div.innerHTML = `<div style="display:flex; justify-content:space-between;"><strong>${game.status === 'PLAYER_WINS' ? 'VICTORIA' : (game.status === 'DEALER_WINS' ? 'DERROTA' : 'EMPATE')}</strong><span class="history-amount">${symbol}${game.betAmount}€</span></div><span class="history-date">${dateStr}</span>`;
+            container.appendChild(div);
+        });
+    } catch (e) { container.innerHTML = `<p style="color:#e74c3c;">⚠️ Error conexión</p>`; }
+}
+
+// Helpers UI
+function getRankDisplay(rank) { const rankMap = { 'TWO': '2', 'THREE': '3', 'FOUR': '4', 'FIVE': '5', 'SIX': '6', 'SEVEN': '7', 'EIGHT': '8', 'NINE': '9', 'TEN': '10', 'JACK': 'J', 'QUEEN': 'Q', 'KING': 'K', 'ACE': 'A' }; return rankMap[rank] || rank.substring(0, 1); }
+function getSymbol(suit) { if (suit === 'HEARTS') return '♥'; if (suit === 'DIAMONDS') return '♦'; if (suit === 'SPADES') return '♠'; return '♣'; }
+function calculateSingleCardValue(card) { if (['JACK', 'QUEEN', 'KING', 'TEN'].includes(card.rank)) return 10; if (card.rank === 'ACE') return 11; const rankMap = {'TWO':2, 'THREE':3, 'FOUR':4, 'FIVE':5, 'SIX':6, 'SEVEN':7, 'EIGHT':8, 'NINE':9}; return rankMap[card.rank] || 0; }
+function calculatePartialScore(cards) { let score = 0; let aces = 0; cards.forEach(c => { score += calculateSingleCardValue(c); if (c.rank === 'ACE') aces++; }); while (score > 21 && aces > 0) { score -= 10; aces--; } return score; }
+function toggleControls(isPlaying) { if (isPlaying) { document.getElementById('bet-panel').classList.add('hidden'); document.getElementById('action-panel').classList.remove('hidden'); } else { document.getElementById('bet-panel').classList.remove('hidden'); document.getElementById('action-panel').classList.add('hidden'); } }
+function showStatus(text) { const el = document.getElementById('status-message'); el.innerText = text; el.classList.remove('hidden'); }
+function hideStatus() { document.getElementById('status-message').classList.add('hidden'); }
+function updateBalanceDisplay() { const el = document.getElementById('balance-display'); if (el) el.innerText = user.balance; }

@@ -10,17 +10,9 @@ public class Hand {
         this.cards = new ArrayList<>();
     }
 
-    public void addCard(Card card) {
-        cards.add(card);
-    }
-
-    public List<Card> getCards() {
-        return cards;
-    }
-
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
-    }
+    public void addCard(Card card) {cards.add(card);}
+    public List<Card> getCards() {return cards;}
+    public void setCards(List<Card> cards) {this.cards = cards;}
 
     public int calculateScore() {
         int score = 0;
@@ -41,17 +33,11 @@ public class Hand {
         return score;
     }
 
-    public int getScore() {
-        return calculateScore();
-    }
+    public int getScore() {return calculateScore();}
 
-    public boolean isBusted() {
-        return calculateScore() > 21;
-    }
+    public boolean isBusted() {return calculateScore() > 21;}
 
-    public boolean isBlackJack() {
-        return calculateScore() == 21 && cards.size() == 2;
-    }
+    public boolean isBlackJack() {return calculateScore() == 21 && cards.size() == 2;}
 
     @Override
     public String toString() {

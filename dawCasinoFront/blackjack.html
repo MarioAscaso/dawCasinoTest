@@ -4,32 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlackJack - DAW Casino</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/game.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♠️</text></svg>">
 </head>
 <body>
 
     <div class="main-layout">
-        
         <aside class="sidebar">
             <h3>📜 Historial</h3>
-            <div id="history-list" class="history-container">
-                <p class="loading-text" style="color:#aaa; padding:10px;">Cargando...</p>
-            </div>
-            
+            <div id="history-list" class="history-container"><p class="loading-text">Cargando...</p></div>
             <button class="btn-secondary small" onclick="endSession()">⏹ Terminar Sesión</button>
         </aside>
 
         <main class="game-wrapper">
-            
             <header class="game-header">
                 <div class="timer-badge">⏱ <span id="session-timer">00:00</span></div>
-
                 <div class="user-profile-display">
                     <span id="username-display">Jugador</span>
                     <img id="header-avatar" src="" class="avatar-icon hidden">
                 </div>
-
                 <div class="balance-container">
                     <div class="balance-badge"><span id="balance-display">0</span> €</div>
                     <button class="btn-deposit" onclick="depositMoney()" title="Ingresar dinero">+</button>
@@ -41,14 +34,11 @@
                     <h2>Banca <span id="dealer-score" class="score-badge">0</span></h2>
                     <div id="dealer-cards" class="cards-area"></div>
                 </div>
-                
                 <hr class="divider">
-                
                 <div class="hand-section">
                     <h2>Tú <span id="player-score" class="score-badge">0</span></h2>
                     <div id="player-cards" class="cards-area"></div>
                 </div>
-
                 <div id="status-message" class="status-overlay hidden"></div>
             </div>
 
@@ -58,7 +48,6 @@
                     <input type="number" id="bet-amount" value="50" min="10" step="10">
                     <button class="btn-primary" style="width:auto; margin-top:0;" onclick="startGame()">Jugar Mano</button>
                 </div>
-                
                 <div id="action-panel" class="hidden">
                     <button class="btn-action hit" onclick="hit()">Pedir (HIT)</button>
                     <button class="btn-action stand" onclick="stand()">Plantarse (STAND)</button>
@@ -68,52 +57,27 @@
     </div>
 
     <div id="setup-modal" class="modal-overlay active">
-        <div class="modal-content large">
-            <h2>♣️ Configuración de la Sesión</h2>
+        <div class="modal-content">
+            <h2 style="color:var(--error); text-align:center;">🛡️ Juego Responsable</h2>
+            <p style="text-align:center; color:#ddd; margin-bottom:20px;">
+                Por tu seguridad, establece tus límites para esta sesión.
+            </p>
             
-            <div class="setup-grid">
-                <div class="setup-section">
-                    <h3>👤 Personalización</h3>
-                    <div class="avatar-selector">
-                        <img id="preview-avatar" src="" alt="Avatar Preview">
-                        <button class="btn-secondary" onclick="randomizeAvatar()">🎲 Cambiar Avatar</button>
-                    </div>
-                    
-                    <div style="margin-top:15px;">
-                        <label>O elige tu Bandera:</label>
-                        <select id="flag-select">
-                            <option value="">(Ninguna)</option>
-                            <option value="🇪🇸">🇪🇸 España</option>
-                            <option value="🇬🇧">🇬🇧 Reino Unido</option>
-                            <option value="🇫🇷">🇫🇷 Francia</option>
-                            <option value="🇩🇪">🇩🇪 Alemania</option>
-                            <option value="🇮🇹">🇮🇹 Italia</option>
-                            <option value="🇺🇸">🇺🇸 USA</option>
-                            <option value="🇯🇵">🇯🇵 Japón</option>
-                            <option value="🌍">🌍 Mundo</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="setup-section">
-                    <h3>🛡️ Juego Responsable</h3>
-                    <p style="font-size:0.8rem; color:#aaa; margin-bottom:10px;">Define tus límites antes de empezar. El juego se detendrá si los superas.</p>
-                    
-                    <label>Límite de Tiempo (minutos):</label>
-                    <input type="number" id="limit-time" value="60" min="5">
-                    
-                    <label>Límite de Pérdidas (€):</label>
-                    <input type="number" id="limit-loss" value="500" min="50">
-                </div>
+            <div class="setup-section" style="background:rgba(0,0,0,0.3);">
+                <label>⏱ Límite de Tiempo (minutos):</label>
+                <input type="number" id="limit-time" value="30" min="5">
+                
+                <label style="margin-top:15px;">💰 Límite de Pérdidas (€):</label>
+                <input type="number" id="limit-loss" value="200" min="50">
+                <small style="color:#aaa; display:block; margin-top:5px;">La sesión se cerrará automáticamente si pierdes esta cantidad.</small>
             </div>
 
-            <hr style="border-color:#444; margin: 15px 0;">
-            
-            <div class="rules-summary" style="background:rgba(255,255,255,0.05); padding:10px; border-radius:5px; font-size:0.9rem;">
-                <p>ℹ️ <strong>Reglas Rápidas:</strong> BlackJack paga <strong>2:1</strong>. La banca se planta obligatoriamente con <strong>17</strong>.</p>
+            <div class="rules-summary" style="margin-top:20px; font-size:0.9rem; text-align:center;">
+                <p>ℹ️ Reglas: BlackJack paga <strong>2:1</strong>. Banca planta en <strong>17</strong>.</p>
             </div>
 
-            <button class="btn-primary" onclick="startSessionConfig()">✅ Guardar y Entrar</button>
+            <button class="btn-primary" onclick="startSessionConfig()" style="margin-top:20px;">✅ Aceptar y Jugar</button>
+            <button class="btn-secondary" onclick="window.location.href='index.html'" style="width:100%; margin-top:10px;">🏠 Volver al Lobby</button>
         </div>
     </div>
 
@@ -124,7 +88,6 @@
                 <p>⏳ Tiempo Jugado: <span id="summary-time">00:00</span></p>
                 <p>💰 Saldo Inicial: <span id="summary-start">0</span> €</p>
                 <p>🏁 Saldo Final: <span id="summary-end">0</span> €</p>
-                
                 <h3 id="summary-result" class="win">Resultados Calculando...</h3>
             </div>
             <button class="btn-primary" onclick="window.location.href='index.html'">🏠 Volver al Menú</button>

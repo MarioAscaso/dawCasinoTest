@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajustes - DawCasino</title>
+    <link rel="stylesheet" href="assets/css/lobby.css">
+</head>
+<body class="center-body"> <div class="settings-container">
+        <h1>⚙️ Ajustes de Perfil</h1>
+        <p style="margin-bottom: 20px; color: #bdc3c7;">Personaliza tu experiencia visual</p>
+        
+        <div class="setup-grid settings-grid">
+            <div class="setup-section settings-option" onclick="selectSetType('IMAGE')">
+                <img id="set-avatar-preview" src="" class="avatar-icon avatar-preview">
+                <button class="btn-secondary small btn-random" onclick="event.stopPropagation(); randomizeSetAvatar()">🎲 Random</button>
+                <div class="radio-wrapper"><input type="radio" name="setType" value="IMAGE" id="set-radio-image"></div>
+            </div>
+
+            <div class="setup-section settings-option" onclick="selectSetType('FLAG')">
+                <div id="set-flag-preview" class="flag-preview">🇪🇸</div>
+                <select id="set-flag-select" onchange="updateSetFlag()" onclick="event.stopPropagation()" class="flag-select">
+                        <option value="🇪🇸">🇪🇸 España</option>
+                        <option value="🇬🇧">🇬🇧 UK</option>
+                        <option value="🇫🇷">🇫🇷 Francia</option>
+                        <option value="🇩🇪">🇩🇪 Alemania</option>
+                        <option value="🇮🇹">🇮🇹 Italia</option>
+                        <option value="🇺🇸">🇺🇸 USA</option>
+                        <option value="🇯🇵">🇯🇵 Japón</option>
+                        <option value="🌍">🌍 Mundo</option>
+                </select>
+                <div class="radio-wrapper"><input type="radio" name="setType" value="FLAG" id="set-radio-flag"></div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-primary" onclick="saveSettings()">💾 Guardar Cambios</button>
+            <button class="btn-secondary" onclick="window.location.href='index.html'">🔙 Volver al Lobby</button>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/settings.js"></script>
+</body>
+</html>

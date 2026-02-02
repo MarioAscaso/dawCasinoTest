@@ -19,11 +19,7 @@ public class DepositMoneyUseCase {
         if (amount <= 0) {
             throw new RuntimeException("La cantidad debe ser positiva");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        // Sumamos el saldo
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         user.setBalance(user.getBalance() + amount);
 
         return userRepository.save(user);

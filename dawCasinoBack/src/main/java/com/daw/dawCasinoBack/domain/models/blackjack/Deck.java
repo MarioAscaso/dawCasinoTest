@@ -6,15 +6,12 @@ import java.util.List;
 
 public class Deck {
 
-    // Quitamos 'final' para que Jackson pueda inyectar las cartas guardadas
     private List<Card> cards;
 
-    // 1. Constructor VACÍO (Solo para Jackson)
     public Deck() {
         this.cards = new ArrayList<>();
     }
 
-    // 2. Constructor LÓGICO (Para crear una baraja nueva llena)
     public Deck(boolean createFullDeck) {
         this.cards = new ArrayList<>();
         if (createFullDeck) {
@@ -45,13 +42,6 @@ public class Deck {
         return cards.size();
     }
 
-    // --- GETTERS Y SETTERS ---
-
-    public List<Card> getCards() {
-        return cards;
-    }
-
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
-    }
+    public List<Card> getCards() {return cards;}
+    public void setCards(List<Card> cards) {this.cards = cards;}
 }

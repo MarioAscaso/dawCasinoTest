@@ -17,11 +17,9 @@ public class GameController {
 
     private final StartGameUseCase startGameUseCase;
     private final PlayTurnUseCase playTurnUseCase;
-    private final GetHistoryUseCase getHistoryUseCase; // Inyectamos el historial
+    private final GetHistoryUseCase getHistoryUseCase;
 
-    public GameController(StartGameUseCase startGameUseCase,
-                          PlayTurnUseCase playTurnUseCase,
-                          GetHistoryUseCase getHistoryUseCase) {
+    public GameController(StartGameUseCase startGameUseCase, PlayTurnUseCase playTurnUseCase, GetHistoryUseCase getHistoryUseCase) {
         this.startGameUseCase = startGameUseCase;
         this.playTurnUseCase = playTurnUseCase;
         this.getHistoryUseCase = getHistoryUseCase;

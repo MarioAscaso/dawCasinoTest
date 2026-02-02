@@ -6,7 +6,7 @@ public class GameHistoryResponse {
     private String id;
     private String status;
     private Double betAmount;
-    private Double resultAmount; // Cuánto ganó/perdió neto
+    private Double resultAmount;
     private LocalDateTime date;
 
     public GameHistoryResponse(String id, String status, Double betAmount, LocalDateTime date) {
@@ -18,12 +18,11 @@ public class GameHistoryResponse {
     }
 
     private Double calculateResult(String status, Double bet) {
-        if ("PLAYER_WINS".equals(status)) return bet; // Ganancia neta
-        if ("DEALER_WINS".equals(status)) return -bet; // Pérdida
-        return 0.0; // Empate
+        if ("PLAYER_WINS".equals(status)) return bet;
+        if ("DEALER_WINS".equals(status)) return -bet;
+        return 0.0;
     }
 
-    // Getters
     public String getId() { return id; }
     public String getStatus() { return status; }
     public Double getBetAmount() { return betAmount; }

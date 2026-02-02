@@ -1,86 +1,38 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lobby - DawCasino</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <style>
-        /* Un poco de CSS extra específico para el lobby */
-        .lobby-container {
-            text-align: center;
-            color: white;
-        }
-
-        .user-info {
-            background: #34495e;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #f1c40f;
-        }
-
-        .balance {
-            font-size: 2rem;
-            color: #f1c40f;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .games-grid {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .game-card {
-            background: #2c3e50;
-            padding: 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.3s;
-            width: 150px;
-            border: 1px solid #444;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            border-color: #27ae60;
-        }
-
-        .btn-logout {
-            background-color: #e74c3c;
-            padding: 8px 15px;
-            border-radius: 5px;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/lobby.css">
 </head>
-
 <body>
 
     <div class="lobby-container">
         <div class="user-info">
-            <h1>👋 Hola, <span id="username-display">Jugador</span></h1>
-            <p>Tu saldo actual es:</p>
-            <div class="balance"><span id="balance-display">0</span> €</div>
-            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+            <button class="settings-btn" onclick="window.location.href='settings.html'" title="Ir a Ajustes">⚙️</button>
+            
+            <img id="lobby-avatar" src="" class="big-avatar hidden">
+            <span id="lobby-flag" class="big-flag hidden"></span>
+
+            <h1 class="lobby-welcome">Hola, <span id="username-display" class="username-accent">...</span></h1>
+            <p>Saldo actual: <strong class="balance-amount"><span id="balance-display">0</span> €</strong></p>
+            
+            <button class="btn-secondary small btn-logout" onclick="logout()">Cerrar Sesión</button>
         </div>
 
-        <h2>🎲 Elige tu juego 🎲</h2>
+        <h2>Elige tu juego</h2>
         <div class="games-grid">
             <div class="game-card" onclick="window.location.href='blackjack.html'">
-                <h3>🃏 BlackJack</h3>
-                <p>¡Jugar Ahora!</p>
+                <div class="game-icon">🃏</div>
+                <h3 class="game-title">BlackJack</h3>
+                <span class="play-now-text">Jugar Ahora</span>
             </div>
-            <div class="game-card">
-                <h3>🎰 Ruleta</h3>
-                <p>Próximamente...</p>
+            
+            <div class="game-card game-card-disabled">
+                <div class="game-icon">🎰</div>
+                <h3 class="game-title">Ruleta</h3>
+                <small>Próximamente</small>
             </div>
         </div>
     </div>
@@ -88,5 +40,4 @@
     <script src="assets/js/config.js"></script>
     <script src="assets/js/lobby.js"></script>
 </body>
-
 </html>

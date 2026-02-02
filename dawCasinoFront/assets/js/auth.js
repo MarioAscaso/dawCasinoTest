@@ -6,10 +6,24 @@ if (registerForm) {
         e.preventDefault();
         const messageBox = setupMessageBox();
 
+        // 1. Obtener tipo visual seleccionado (Imagen o Bandera)
+        const type = document.querySelector('input[name="visualType"]:checked').value;
+        const avatarUrl = document.getElementById('reg-avatar-preview').src;
+        const flagCode = document.getElementById('reg-flag-select').value;
+
+        // 2. Preparar datos para el backend
+        // Si elige IMAGE -> avatar=URL, avatarType="IMAGE"
+        // Si elige FLAG  -> avatar=null, avatarType="🇪🇸" (código bandera)
+        
+        const finalAvatar = (type === 'IMAGE') ? avatarUrl : null;
+        const finalType = (type === 'FLAG') ? flagCode : "IMAGE";
+
         const data = {
             username: document.getElementById('username').value,
             email: document.getElementById('email').value,
-            password: document.getElementById('password').value
+            password: document.getElementById('password').value,
+            avatar: finalAvatar,
+            avatarType: finalType
         };
 
         try {
@@ -19,7 +33,7 @@ if (registerForm) {
                 body: JSON.stringify(data)
             });
 
-            await handleErrors(response); // Usamos la función de config.js
+            await handleErrors(response);
 
             showMessage(messageBox, "¡Cuenta creada! Redirigiendo...", "success");
             setTimeout(() => window.location.href = 'login.html', 2000);
@@ -66,7 +80,7 @@ if (loginForm) {
     });
 }
 
-// --- FUNCIONES AUXILIARES DE UI ---
+// --- FUNCIONES AUXILIARES ---
 function setupMessageBox() {
     const box = document.getElementById('message-box');
     box.style.display = 'none';

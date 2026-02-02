@@ -2,14 +2,13 @@ package com.daw.dawCasinoBack.infrastructure.controllers.dtos;
 
 public class UpdateProfileRequest {
     private Long userId;
-    private String avatar;      // URL o código
-    private String avatarType;  // "IMAGE" o "FLAG"
+    private String avatar;
+    private String avatarType;
     private Double dailyLossLimit;
     private Integer sessionTimeLimit;
 
     public UpdateProfileRequest() {}
 
-    // Getters y Setters
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 

@@ -31,6 +31,11 @@ public class RegisterUserUseCase {
         user.setRole("USER");
         user.setBalance(1000.00);
 
+        if (user.getAvatar() == null && user.getAvatarType() == null) {
+            user.setAvatar("https://api.dicebear.com/9.x/avataaars/svg?seed=" + user.getUsername());
+            user.setAvatarType("IMAGE");
+        }
+
         return userRepository.save(user);
     }
 }

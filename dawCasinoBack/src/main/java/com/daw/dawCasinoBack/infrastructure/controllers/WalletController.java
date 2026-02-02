@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/wallet")
-@CrossOrigin(origins = "*") // ¡Importante para evitar CORS!
+@CrossOrigin(origins = "*")
 public class WalletController {
 
     private final DepositMoneyUseCase depositMoneyUseCase;

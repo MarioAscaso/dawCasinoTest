@@ -1,5 +1,6 @@
 package com.daw.dawCasinoBack.infrastructure.controllers;
 
+import com.daw.dawCasinoBack.application.usecases.GetUserUseCase;
 import com.daw.dawCasinoBack.application.usecases.UpdateProfileUseCase;
 import com.daw.dawCasinoBack.domain.models.User;
 import com.daw.dawCasinoBack.infrastructure.controllers.dtos.UpdateProfileRequest;
@@ -8,13 +9,25 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // Para evitar problemas con el Frontend
+@CrossOrigin(origins = "*")
 public class UserController {
 
     private final UpdateProfileUseCase updateProfileUseCase;
+    private final GetUserUseCase getUserUseCase;
 
-    public UserController(UpdateProfileUseCase updateProfileUseCase) {
+    public UserController(UpdateProfileUseCase updateProfileUseCase, GetUserUseCase getUserUseCase) {
         this.updateProfileUseCase = updateProfileUseCase;
+        this.getUserUseCase = getUserUseCase;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        try {
+            User user = getUserUseCase.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/profile")

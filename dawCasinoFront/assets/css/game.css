@@ -1,0 +1,144 @@
+/* --- LAYOUT DEL JUEGO --- */
+.main-layout { display: flex; width: 100%; height: 100%; overflow: hidden; }
+
+/* BARRA LATERAL */
+.sidebar {
+    width: 280px; min-width: 260px;
+    background: #2c3e50; border-right: 2px solid #f1c40f;
+    padding: 15px; display: flex; flex-direction: column;
+    color: white; box-shadow: 5px 0 15px rgba(0,0,0,0.5); z-index: 10; height: 100%;
+}
+.history-container { flex-grow: 1; overflow-y: auto; margin: 10px 0; padding-right: 5px; }
+.history-container::-webkit-scrollbar { width: 6px; }
+.history-container::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+.history-item {
+    background: rgba(0,0,0,0.3); padding: 10px; margin-bottom: 8px;
+    border-radius: 8px; border-left: 5px solid gray; font-size: 0.85rem;
+}
+.history-item.win { border-left-color: #2ecc71; }
+.history-item.lose { border-left-color: #e74c3c; }
+.history-item.draw { border-left-color: #f39c12; }
+.history-amount { font-weight: bold; float: right; }
+.history-date { font-size: 0.75rem; color: #bdc3c7; display: block; margin-top: 5px; clear: both;}
+
+
+/* ZONA CENTRAL */
+.game-wrapper {
+    flex-grow: 1; display: flex; flex-direction: column;
+    background: var(--bg-color); padding: 15px; height: 100%; overflow: hidden;
+}
+
+/* HEADER DEL JUEGO */
+.game-header {
+    display: flex; justify-content: flex-end; align-items: center;
+    flex-shrink: 0; height: 60px; gap: 15px;
+}
+.timer-badge {
+    font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold;
+    color: white; background: #c0392b; padding: 5px 15px;
+    border-radius: 5px; border: 1px solid white; margin-right: auto;
+    box-shadow: 0 0 10px rgba(192, 57, 43, 0.5);
+}
+.user-profile-display {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.1); padding: 5px 20px;
+    border-radius: 30px; border: 1px solid #555;
+}
+.avatar-icon-small { width: 45px; height: 45px; border-radius: 50%; background: white; border: 2px solid var(--accent); }
+.flag-icon { font-size: 1.8rem; line-height: 1; cursor: default; }
+
+.balance-container { display: flex; align-items: center; gap: 10px; }
+.balance-badge {
+    background: #34495e; padding: 8px 20px; border-radius: 30px;
+    font-weight: bold; font-size: 1.1rem; color: var(--accent); border: 2px solid var(--accent);
+}
+.btn-deposit {
+    background-color: var(--primary); color: white;
+    width: 35px; height: 35px; border-radius: 50%; border: 2px solid white;
+    font-size: 1.4rem; font-weight: bold; cursor: pointer;
+    display: flex; justify-content: center; align-items: center; padding-bottom: 4px;
+    transition: transform 0.2s;
+}
+.btn-deposit:hover { transform: scale(1.1) rotate(90deg); background-color: #2ecc71; }
+
+
+/* --- MESA DE JUEGO --- */
+.casino-table {
+    background-color: #27ae60; border: 15px solid #5d4037; border-radius: 40px;
+    padding: 1rem; position: relative; flex-grow: 1; 
+    display: flex; flex-direction: column; justify-content: space-evenly;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.6); width: 100%; overflow: hidden;
+}
+.hand-section { 
+    text-align: center; flex: 1; display: flex;
+    flex-direction: column; justify-content: center;
+}
+.hand-section h2 { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 5px; font-size: 1.2rem; }
+.score-badge { background: #333; padding: 2px 10px; border-radius: 10px; font-size: 0.9em; border: 1px solid #777; }
+.cards-area { display: flex; justify-content: center; gap: 10px; margin-top: 5px; flex-wrap: wrap; }
+
+/* CARTAS */
+.card {
+    background: white; width: 95px; height: 135px; border-radius: 8px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 2rem; font-weight: bold;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.3); position: relative; user-select: none;
+}
+.card.red { color: #c0392b; }
+.card.black { color: #2c3e50; }
+.card.back {
+    background: #e74c3c;
+    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.2) 20px);
+    color: transparent; border: 3px solid white;
+}
+.card-appear { animation: dealCard 0.4s ease-out forwards; }
+@keyframes dealCard { from { transform: translateY(-100px) scale(0.5) rotate(10deg); opacity: 0; } to { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } }
+
+/* FICHAS DE APUESTA */
+.chips-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; }
+.chip {
+    width: 60px; height: 60px; border-radius: 50%;
+    border: 5px dashed white; font-weight: bold; font-size: 1.2rem; color: white;
+    cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    transition: transform 0.2s; text-shadow: 1px 1px 2px black;
+    display: flex; justify-content: center; align-items: center;
+}
+.chip:hover { transform: translateY(-5px) scale(1.1); }
+.chip:active { transform: scale(0.95); }
+.chip-10 { background: #e74c3c; border-color: #c0392b; }
+.chip-25 { background: #27ae60; border-color: #2ecc71; }
+.chip-50 { background: #2980b9; border-color: #3498db; }
+.chip-100 { background: #2c3e50; border-color: #f1c40f; color: #f1c40f;}
+.chip-clear { background: #7f8c8d; border: 2px solid #95a5a6; font-size: 1rem; width: 40px; height: 40px; align-self: center;}
+
+/* CONTROLES */
+.controls-area {
+    background: #2c3e50; padding: 10px; border-radius: 15px;
+    text-align: center; border: 2px solid #444; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+    flex-shrink: 0; min-height: 80px; display: flex; align-items: center; justify-content: center;
+}
+.bet-controls { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.bet-controls input { width: 100px; text-align: center; font-size: 1.5rem; background: #222; border: 1px solid #555; }
+.btn-action {
+    padding: 12px 30px; font-size: 1.1rem; font-weight: bold;
+    border: none; border-radius: 10px; cursor: pointer; margin: 0 10px; transition: transform 0.1s;
+}
+.btn-action:active { transform: translateY(2px); }
+.btn-action.hit { background-color: #3498db; color: white; }
+.btn-action.stand { background-color: #e74c3c; color: white; }
+
+/* MENSAJE FLOTANTE */
+.status-overlay {
+    position: absolute; top: 15%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9); color: white; padding: 12px 30px;
+    width: auto; min-width: 300px; border-radius: 50px; border: 2px solid var(--accent);
+    font-size: 1.5rem; font-weight: bold; text-align: center; z-index: 100;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: slideDown 0.5s ease; white-space: pre-line;
+}
+@keyframes slideDown { from { transform: translate(-50%, -150%); opacity: 0;} to { transform: translate(-50%, -50%); opacity: 1;} }
+
+/* RESUMEN FINAL DE SESIÓN */
+.summary-stats p { font-size: 1.1rem; margin: 10px 0; display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding-bottom: 5px; }
+#summary-result { text-align: center; font-size: 1.5rem; margin-top: 15px; padding: 10px; border-radius: 10px; }
+#summary-result.win { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+#summary-result.lose { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }

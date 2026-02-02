@@ -188,7 +188,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 5px rgb
 @keyframes slideDown { from { transform: translate(-50%, -150%); opacity: 0;} to { transform: translate(-50%, -50%); opacity: 1;} }
 
 
-/* --- MODALES (NUEVOS ESTILOS) --- */
+/* --- MODALES (GENERAL) --- */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
@@ -224,4 +224,92 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 5px rgb
 @media (max-width: 600px) {
     .setup-grid { grid-template-columns: 1fr; } 
     .game-header { flex-wrap: wrap; height: auto; padding: 5px; }
+}
+
+/* ========================================================
+   ESTILOS NUEVOS EXTRAÍDOS DEL LOBBY (INDEX.HTML) 
+   ======================================================== */
+
+.lobby-container { 
+    text-align: center; color: white; padding-top: 50px; 
+}
+
+.user-info { 
+    background: #34495e; padding: 30px; border-radius: 15px; 
+    display: inline-block; border: 2px solid #f1c40f; 
+    min-width: 320px; position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.settings-btn { 
+    position: absolute; top: 10px; right: 10px; 
+    background: none; border: none; font-size: 1.5rem; 
+    cursor: pointer; transition: 0.2s;
+}
+.settings-btn:hover { transform: rotate(45deg); }
+
+.lobby-welcome { margin: 10px 0; }
+.username-accent { color: var(--accent); }
+.balance-amount { color: var(--primary); font-size: 1.4rem; }
+
+.btn-logout { margin-top: 20px; width: auto; padding: 8px 20px; }
+
+/* Grid de Juegos */
+.games-grid { display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+
+.game-card { 
+    background: #2c3e50; padding: 20px; border-radius: 15px; 
+    cursor: pointer; transition: 0.3s; width: 160px; 
+    border: 1px solid #444; 
+}
+.game-card:hover { transform: translateY(-10px); border-color: #27ae60; background: #34495e; }
+
+.game-card-disabled { opacity: 0.6; cursor: not-allowed; }
+
+.game-icon { font-size: 3.5rem; }
+.game-title { margin-top: 10px; }
+.play-now-text { font-size: 0.8rem; color: #2ecc71; }
+
+.big-avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 10px; background: white;}
+.big-flag { font-size: 5rem; display: block; margin-bottom: 5px; line-height: 1; }
+
+/* Modal de Ajustes (Clases específicas) */
+.settings-grid { margin-bottom: 20px; }
+.settings-option { text-align: center; cursor: pointer; }
+.avatar-preview { width: 60px; height: 60px; margin: auto; display: block; }
+.btn-random { margin-top: 5px; font-size: 0.8rem; }
+.radio-wrapper { margin-top: 5px; }
+.flag-preview { font-size: 3rem; line-height: 1.2; }
+.flag-select { width: 100%; font-size: 0.8rem; }
+.btn-cancel { width: 100%; margin-top: 10px; }
+
+/* Estilos para la página de Settings independiente */
+.center-body {
+    justify-content: center;
+    align-items: center;
+    background-image: radial-gradient(circle at center, #2c3e50 0%, #1a1a1d 100%); /* Fondo chulo */
+}
+
+.settings-container {
+    background-color: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    width: 95%;
+    max-width: 600px; /* Un poco más ancho que el login */
+    text-align: center;
+    border: 2px solid #444;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }

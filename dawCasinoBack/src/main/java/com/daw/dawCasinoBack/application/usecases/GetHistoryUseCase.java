@@ -18,7 +18,6 @@ public class GetHistoryUseCase {
     }
 
     public List<GameHistoryResponse> getUserHistory(Long userId) {
-        // Pedimos las 10 últimas que NO estén en curso ("PLAYING")
         return gameRepository.findByUserIdAndStatusNotOrderByCreatedAtDesc(
                         userId,
                         "PLAYING",

@@ -1,6 +1,5 @@
 /**
- * BLACKJACK.JS - Versión Final TFG
- * Incluye: Conexión Backend Perfil, Juego Responsable, Timer y Lógica de Juego
+ * BLACKJACK.JS - Versión Final TFG (Con Sincronización)
  */
 
 let currentGameId = null;
@@ -18,46 +17,49 @@ let sessionLimits = {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // --- INICIALIZACIÓN ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // 1. Validar Login
     const userStored = localStorage.getItem('user');
-    if (!userStored) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!userStored) { window.location.href = 'login.html'; return; }
+    
     user = JSON.parse(userStored);
     
-    // 2. Cargar preferencias visuales guardadas (Desde el objeto User de BBDD)
-    loadVisualPreferences();
+    // 2. Sincronización
+    await syncUserData();
 
-    // El modal de configuración (#setup-modal) se muestra automáticamente por el HTML "active"
+    // 3. Aplicar preferencias visuales (ya guardadas)
+    applyVisualPreferences();
 });
 
-
-// --- GESTIÓN DE LA CONFIGURACIÓN (CONEXIÓN CON BACKEND) ---
-
-function randomizeAvatar() {
-    const seed = Math.random().toString(36).substring(7);
-    const url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
-    document.getElementById('preview-avatar').src = url;
+async function syncUserData() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/users/${user.id}`);
+        if (response.ok) {
+            const freshUser = await response.json();
+            user = freshUser;
+            localStorage.setItem('user', JSON.stringify(user));
+            updateBalanceDisplay();
+        }
+    } catch (error) { console.warn("Modo Offline", error); }
 }
 
+// --- CONFIGURACIÓN DE SESIÓN (SOLO LÍMITES) ---
+
 async function startSessionConfig() {
-    // 1. Recoger datos del formulario
-    const avatarImg = document.getElementById('preview-avatar').src;
-    const flagVal = document.getElementById('flag-select').value;
+    // Solo recogemos los límites
     const timeLimit = parseInt(document.getElementById('limit-time').value) || 60;
     const lossLimit = parseFloat(document.getElementById('limit-loss').value) || 500;
     
     try {
-        // 2. 🔥 LLAMADA AL BACKEND: Guardar en BBDD
+        // Guardamos los límites en BBDD para persistencia
+        // Enviamos el avatar actual para no perderlo (aunque el backend debería respetar nulos)
         const response = await fetch(`${CONFIG.API_URL}/users/profile`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: user.id,
-                avatar: avatarImg,      
-                avatarType: flagVal, // Guardamos la bandera aquí
+                avatar: user.avatar,      
+                avatarType: user.avatarType,
                 dailyLossLimit: lossLimit,
                 sessionTimeLimit: timeLimit
             })
@@ -65,21 +67,16 @@ async function startSessionConfig() {
 
         if (!response.ok) throw new Error("Error al guardar perfil");
 
-        // 3. Actualizamos el usuario local con los datos reales de BBDD
         const updatedUser = await response.json();
         user = updatedUser;
         localStorage.setItem('user', JSON.stringify(user));
 
-        // 4. Aplicar configuración visual
-        applyVisualPreferences();
-
-        // 5. Iniciar Variables de Sesión (Juego Responsable Front)
+        // Iniciar Sesión de Juego
         sessionLimits.timeMinutes = timeLimit;
         sessionLimits.maxLoss = lossLimit;
         sessionStartBalance = user.balance;
         sessionStartTime = new Date();
 
-        // 6. Cerrar Modal y Arrancar todo
         document.getElementById('setup-modal').classList.remove('active');
         updateBalanceDisplay();
         loadHistory();
@@ -87,8 +84,7 @@ async function startSessionConfig() {
 
     } catch (error) {
         console.error(error);
-        alert("Hubo un problema guardando tu configuración, pero puedes jugar igual.");
-        // Fallback para jugar offline si falla el servidor
+        alert("Error al guardar límites. Jugando con valores por defecto.");
         document.getElementById('setup-modal').classList.remove('active');
         sessionStartBalance = user.balance;
         sessionStartTime = new Date();
@@ -96,33 +92,12 @@ async function startSessionConfig() {
     }
 }
 
-function loadVisualPreferences() {
-    // Leemos del usuario (que viene de BBDD)
-    if (user.avatar) {
-        document.getElementById('preview-avatar').src = user.avatar;
-    } else {
-        randomizeAvatar();
-    }
-
-    if (user.avatarType) {
-        // Recuperamos la bandera
-        document.getElementById('flag-select').value = user.avatarType;
-    }
-    
-    // Rellenamos los inputs con lo guardado
-    if (user.dailyLossLimit) document.getElementById('limit-loss').value = user.dailyLossLimit;
-    if (user.sessionTimeLimit) document.getElementById('limit-time').value = user.sessionTimeLimit;
-}
-
 function applyVisualPreferences() {
-    // Aplicar Avatar
     const avatarEl = document.getElementById('header-avatar');
-    if (user.avatar) {
-        avatarEl.src = user.avatar;
-        avatarEl.classList.remove('hidden');
-    }
-
-    // Aplicar Bandera
+    
+    // Checkear si es bandera
+    const isFlag = user.avatarType && user.avatarType.length < 10 && user.avatarType !== "IMAGE";
+    
     let flagSpan = document.getElementById('header-flag-emoji');
     if(!flagSpan) {
         flagSpan = document.createElement('span');
@@ -131,19 +106,19 @@ function applyVisualPreferences() {
         document.querySelector('.user-profile-display').prepend(flagSpan);
     }
     
-    // Si hay bandera (check simple de longitud)
-    if (user.avatarType && user.avatarType.length < 10) { 
+    if (isFlag) {
         flagSpan.innerText = user.avatarType;
         flagSpan.classList.remove('hidden');
+        avatarEl.classList.add('hidden');
     } else {
         flagSpan.classList.add('hidden');
+        avatarEl.src = user.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`;
+        avatarEl.classList.remove('hidden');
     }
-
     document.getElementById('username-display').innerText = user.username;
 }
 
-
-// --- LÓGICA DE JUEGO RESPONSABLE (TIMER Y LÍMITES) ---
+// --- LÓGICA DE JUEGO RESPONSABLE ---
 
 function startTimer() {
     sessionTimerInterval = setInterval(() => {
@@ -151,7 +126,6 @@ function startTimer() {
         const diffMs = now - sessionStartTime;
         const diffMins = Math.floor(diffMs / 60000);
         const diffSecs = Math.floor((diffMs % 60000) / 1000);
-
         const str = `${diffMins.toString().padStart(2, '0')}:${diffSecs.toString().padStart(2, '0')}`;
         const timerEl = document.getElementById('session-timer');
         if(timerEl) timerEl.innerText = str;
@@ -166,13 +140,11 @@ function startTimer() {
 
 function checkResponsibleGamingLimits(betAmount) {
     const currentLoss = sessionStartBalance - user.balance;
-    
     if (currentLoss >= sessionLimits.maxLoss) {
         alert(`🛑 LÍMITE DE PÉRDIDAS ALCANZADO 🛑\nHas alcanzado tu límite de ${sessionLimits.maxLoss}€. Es hora de descansar.`);
         endSession();
         return false;
     }
-    
     if ((currentLoss + betAmount) > sessionLimits.maxLoss) {
         alert(`⚠️ Esta apuesta superaría tu límite de pérdidas (${sessionLimits.maxLoss}€).`);
         return false;
@@ -180,8 +152,7 @@ function checkResponsibleGamingLimits(betAmount) {
     return true;
 }
 
-
-// --- FUNCIONES PRINCIPALES DEL JUEGO ---
+// --- FUNCIONES DEL JUEGO (GAMEPLAY) ---
 
 async function startGame() {
     const betInput = document.getElementById('bet-amount');
@@ -189,9 +160,7 @@ async function startGame() {
     const currentBalance = parseFloat(user.balance);
 
     if (isNaN(bet) || bet < 10) { alert("La apuesta mínima son 10€"); return; }
-    if (bet > currentBalance) { alert("Saldo insuficiente. Usa el botón (+) para ingresar."); return; }
-
-    // 🔥 CHECK: Juego Responsable antes de llamar al servidor
+    if (bet > currentBalance) { alert(`Saldo insuficiente (${currentBalance}€).`); return; }
     if (!checkResponsibleGamingLimits(bet)) return;
 
     try {
@@ -216,10 +185,7 @@ async function startGame() {
         } else {
              toggleControls(true);
         }
-
-    } catch (error) {
-        alert("Error al empezar: " + error.message);
-    }
+    } catch (error) { alert("Error al empezar: " + error.message); }
 }
 
 async function playAction(action) {
@@ -245,9 +211,7 @@ async function playAction(action) {
 function hit() { playAction("HIT"); }
 function stand() { playAction("STAND"); }
 
-
 // --- RENDERIZADO Y ANIMACIONES ---
-
 async function animateInitialDeal(game) {
     const pContainer = document.getElementById('player-cards');
     const dContainer = document.getElementById('dealer-cards');
@@ -321,8 +285,7 @@ function appendCardHidden(container) {
     container.appendChild(div);
 }
 
-
-// --- FIN DE JUEGO Y UTILIDADES ---
+// --- FIN Y UTILIDADES ---
 
 function finishGame(game) {
     toggleControls(false); 
@@ -393,10 +356,7 @@ async function depositMoney() {
         user.balance = updatedUser.balance;
         localStorage.setItem('user', JSON.stringify(user));
         updateBalanceDisplay();
-        
-        // Ajustamos el saldo inicial de sesión para que el ingreso no cuente como "ganancia" en el resumen
         sessionStartBalance += amount; 
-
         alert("Ingreso realizado. ¡Suerte!");
     } catch (error) { alert("Error al ingresar: " + error.message); }
 }
@@ -422,7 +382,7 @@ async function loadHistory() {
     } catch (e) { container.innerHTML = `<p style="color:#e74c3c;">⚠️ Error conexión</p>`; }
 }
 
-// Helpers UI
+// Helpers
 function getRankDisplay(rank) { const rankMap = { 'TWO': '2', 'THREE': '3', 'FOUR': '4', 'FIVE': '5', 'SIX': '6', 'SEVEN': '7', 'EIGHT': '8', 'NINE': '9', 'TEN': '10', 'JACK': 'J', 'QUEEN': 'Q', 'KING': 'K', 'ACE': 'A' }; return rankMap[rank] || rank.substring(0, 1); }
 function getSymbol(suit) { if (suit === 'HEARTS') return '♥'; if (suit === 'DIAMONDS') return '♦'; if (suit === 'SPADES') return '♠'; return '♣'; }
 function calculateSingleCardValue(card) { if (['JACK', 'QUEEN', 'KING', 'TEN'].includes(card.rank)) return 10; if (card.rank === 'ACE') return 11; const rankMap = {'TWO':2, 'THREE':3, 'FOUR':4, 'FIVE':5, 'SIX':6, 'SEVEN':7, 'EIGHT':8, 'NINE':9}; return rankMap[card.rank] || 0; }

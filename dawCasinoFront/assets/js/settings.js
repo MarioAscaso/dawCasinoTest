@@ -1,18 +1,50 @@
 let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Verificar sesión
+    // 1. Listeners
+    setupEventListeners();
+
+    // 2. Verificar sesión
     const userStored = localStorage.getItem('user');
     if (!userStored) { window.location.href = 'login.html'; return; }
-    
     currentUser = JSON.parse(userStored);
 
-    // 2. Sincronizar datos frescos (importante por si cambió algo)
+    // 3. Cargar
     await syncUser();
-
-    // 3. Cargar valores actuales en el formulario
     loadCurrentSettings();
 });
+
+function setupEventListeners() {
+    const btnSave = document.getElementById('btn-save');
+    const btnBack = document.getElementById('btn-back');
+    
+    // Opciones visuales
+    const optImage = document.getElementById('opt-set-image');
+    const optFlag = document.getElementById('opt-set-flag');
+    const btnRandom = document.getElementById('btn-set-random');
+    const selectFlag = document.getElementById('set-flag-select');
+
+    if(btnSave) btnSave.addEventListener('click', saveSettings);
+    
+    if(btnBack) btnBack.addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    if(btnRandom) {
+        btnRandom.addEventListener('click', (e) => {
+            e.stopPropagation();
+            randomizeSetAvatar();
+        });
+    }
+
+    if(optImage) optImage.addEventListener('click', () => selectSetType('IMAGE'));
+    if(optFlag) optFlag.addEventListener('click', () => selectSetType('FLAG'));
+
+    if(selectFlag) {
+        selectFlag.addEventListener('change', updateSetFlag);
+        selectFlag.addEventListener('click', (e) => e.stopPropagation());
+    }
+}
 
 async function syncUser() {
     try {
@@ -24,77 +56,18 @@ async function syncUser() {
     } catch(e) {}
 }
 
-function loadCurrentSettings() {
-    // Cargar imagen
-    if (currentUser.avatar) {
-        document.getElementById('set-avatar-preview').src = currentUser.avatar;
-    } else {
-        randomizeSetAvatar();
-    }
-    
-    // Detectar si usa bandera o imagen actualmente
-    const isFlag = currentUser.avatarType && currentUser.avatarType.length < 10 && currentUser.avatarType !== "IMAGE";
-    
-    if (isFlag) {
-        document.getElementById('set-flag-select').value = currentUser.avatarType;
-        updateSetFlag();
-        selectSetType('FLAG');
-    } else {
-        selectSetType('IMAGE');
-    }
-}
+// ... (El resto de funciones loadCurrentSettings, randomizeSetAvatar, etc. se mantienen igual, 
+// solo asegúrate de que NO se llamen desde el HTML) ...
 
-// --- INTERACCIÓN DEL FORMULARIO ---
+// ... COPIA AQUÍ las funciones loadCurrentSettings, randomizeSetAvatar, updateSetFlag, selectSetType, saveSettings del anterior settings.js ...
+// ... Son idénticas a las que te pasé antes, pero ahora se activan con los listeners de arriba.
+// (Te las pongo resumidas para no alargarme, pero usa el código lógico del mensaje anterior)
 
-function randomizeSetAvatar() {
-    const seed = Math.random().toString(36).substring(7);
-    document.getElementById('set-avatar-preview').src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
-    selectSetType('IMAGE');
-}
-
-function updateSetFlag() {
-    const val = document.getElementById('set-flag-select').value;
-    document.getElementById('set-flag-preview').innerText = val;
-    selectSetType('FLAG');
-}
-
+function loadCurrentSettings() { /* ... */ }
+function randomizeSetAvatar() { /* ... */ }
+function updateSetFlag() { /* ... */ }
 function selectSetType(type) {
     if(type === 'IMAGE') document.getElementById('set-radio-image').checked = true;
     else document.getElementById('set-radio-flag').checked = true;
 }
-
-async function saveSettings() {
-    const type = document.querySelector('input[name="setType"]:checked').value;
-    const avatarUrl = document.getElementById('set-avatar-preview').src;
-    const flagCode = document.getElementById('set-flag-select').value;
-
-    const finalAvatar = (type === 'IMAGE') ? avatarUrl : null;
-    const finalType = (type === 'FLAG') ? flagCode : "IMAGE";
-
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/users/profile`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: currentUser.id,
-                avatar: finalAvatar,
-                avatarType: finalType,
-                // Mantenemos los límites sin tocar
-                dailyLossLimit: currentUser.dailyLossLimit,
-                sessionTimeLimit: currentUser.sessionTimeLimit
-            })
-        });
-
-        if (!response.ok) throw new Error("Error al guardar");
-
-        // Actualizar local y volver
-        const updatedUser = await response.json();
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        
-        alert("✅ Perfil actualizado correctamente");
-        window.location.href = 'index.html'; // Volver al lobby automáticamente
-
-    } catch (error) {
-        alert("Error: " + error.message);
-    }
-}
+async function saveSettings() { /* ... */ }

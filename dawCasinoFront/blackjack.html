@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlackJack - DAW Casino</title>
+    <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/game.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♠️</text></svg>">
 </head>
@@ -13,7 +14,7 @@
         <aside class="sidebar">
             <h3>📜 Historial</h3>
             <div id="history-list" class="history-container"><p class="loading-text">Cargando...</p></div>
-            <button class="btn-secondary small" onclick="endSession()">⏹ Terminar Sesión</button>
+            <button id="btn-end-session" class="btn-secondary small">⏹ Terminar Sesión</button>
         </aside>
 
         <main class="game-wrapper">
@@ -21,11 +22,11 @@
                 <div class="timer-badge">⏱ <span id="session-timer">00:00</span></div>
                 <div class="user-profile-display">
                     <span id="username-display">Jugador</span>
-                    <img id="header-avatar" src="" class="avatar-icon hidden">
+                    <img id="header-avatar" src="" class="avatar-icon-small hidden">
                 </div>
                 <div class="balance-container">
                     <div class="balance-badge"><span id="balance-display">0</span> €</div>
-                    <button class="btn-deposit" onclick="depositMoney()" title="Ingresar dinero">+</button>
+                    <button id="btn-deposit" class="btn-deposit" title="Ingresar dinero">+</button>
                 </div>
             </header>
 
@@ -44,13 +45,24 @@
 
             <div class="controls-area">
                 <div id="bet-panel">
-                    <label for="bet-amount" style="display:inline; margin-right:10px;">Apuesta:</label>
-                    <input type="number" id="bet-amount" value="50" min="10" step="10">
-                    <button class="btn-primary" style="width:auto; margin-top:0;" onclick="startGame()">Jugar Mano</button>
+                    <div class="chips-container">
+                        <button class="chip chip-10 chip-btn" data-amount="10">10</button>
+                        <button class="chip chip-25 chip-btn" data-amount="25">25</button>
+                        <button class="chip chip-50 chip-btn" data-amount="50">50</button>
+                        <button class="chip chip-100 chip-btn" data-amount="100">100</button>
+                        <button id="btn-clear-bet" class="chip chip-clear">❌</button>
+                    </div>
+
+                    <div class="bet-controls">
+                        <label>Apuesta Total:</label>
+                        <input type="number" id="bet-amount" value="0" min="10" readonly>
+                        <button id="btn-start-game" class="btn-primary">Jugar Mano</button>
+                    </div>
                 </div>
+                
                 <div id="action-panel" class="hidden">
-                    <button class="btn-action hit" onclick="hit()">Pedir (HIT)</button>
-                    <button class="btn-action stand" onclick="stand()">Plantarse (STAND)</button>
+                    <button id="btn-hit" class="btn-action hit">Pedir (HIT)</button>
+                    <button id="btn-stand" class="btn-action stand">Plantarse (STAND)</button>
                 </div>
             </div>
         </main>
@@ -72,12 +84,8 @@
                 <small style="color:#aaa; display:block; margin-top:5px;">La sesión se cerrará automáticamente si pierdes esta cantidad.</small>
             </div>
 
-            <div class="rules-summary" style="margin-top:20px; font-size:0.9rem; text-align:center;">
-                <p>ℹ️ Reglas: BlackJack paga <strong>2:1</strong>. Banca planta en <strong>17</strong>.</p>
-            </div>
-
-            <button class="btn-primary" onclick="startSessionConfig()" style="margin-top:20px;">✅ Aceptar y Jugar</button>
-            <button class="btn-secondary" onclick="window.location.href='index.html'" style="width:100%; margin-top:10px;">🏠 Volver al Lobby</button>
+            <button id="btn-confirm-session" class="btn-primary" style="margin-top:20px;">✅ Aceptar y Jugar</button>
+            <button id="btn-back-lobby" class="btn-secondary" style="width:100%; margin-top:10px;">🏠 Volver al Lobby</button>
         </div>
     </div>
 
@@ -88,10 +96,10 @@
                 <p>⏳ Tiempo Jugado: <span id="summary-time">00:00</span></p>
                 <p>💰 Saldo Inicial: <span id="summary-start">0</span> €</p>
                 <p>🏁 Saldo Final: <span id="summary-end">0</span> €</p>
-                <h3 id="summary-result" class="win">Resultados Calculando...</h3>
+                <h3 id="summary-result" class="win">Resultados...</h3>
             </div>
-            <button class="btn-primary" onclick="window.location.href='index.html'">🏠 Volver al Menú</button>
-            <button class="btn-secondary" onclick="location.reload()" style="width:100%; margin-top:10px;">🔄 Jugar de nuevo</button>
+            <button id="btn-back-lobby-2" class="btn-primary">🏠 Volver al Menú</button>
+            <button id="btn-replay" class="btn-secondary" style="width:100%; margin-top:10px;">🔄 Jugar de nuevo</button>
         </div>
     </div>
 

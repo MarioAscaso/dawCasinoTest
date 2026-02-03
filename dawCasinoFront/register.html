@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - DawCasino</title>
+    <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/auth.css">
 </head>
 <body class="auth-body">
 
     <div class="auth-container" style="max-width: 500px;">
-        <h1>Crear Cuenta</h1>
+        <h1>♣️ Crear Cuenta ♦️</h1>
         
         <form id="registerForm">
             <div class="input-group">
@@ -31,17 +32,17 @@
             
             <div class="setup-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
                 
-                <div class="setup-section" style="text-align:center; cursor:pointer;" onclick="selectVisualType('IMAGE')">
+                <div id="opt-image" class="setup-section" style="text-align:center; cursor:pointer;">
                     <img id="reg-avatar-preview" src="https://api.dicebear.com/9.x/avataaars/svg?seed=Felix" class="avatar-icon" style="width:70px; height:70px; margin:auto; display:block;">
-                    <button type="button" class="btn-secondary small" style="margin-top:10px; font-size:0.8rem; padding:5px;" onclick="event.stopPropagation(); randomizeRegAvatar()">🎲 Aleatorio</button>
+                    <button type="button" id="btn-random" class="btn-secondary small" style="margin-top:10px; font-size:0.8rem; padding:5px;">🎲 Aleatorio</button>
                     <div style="margin-top:10px;">
                         <input type="radio" name="visualType" value="IMAGE" checked id="radio-image">
                     </div>
                 </div>
 
-                <div class="setup-section" style="text-align:center; cursor:pointer;" onclick="selectVisualType('FLAG')">
+                <div id="opt-flag" class="setup-section" style="text-align:center; cursor:pointer;">
                     <div id="reg-flag-preview" style="font-size:3.5rem; line-height:1.2;">🇪🇸</div>
-                    <select id="reg-flag-select" onchange="updateFlagPreview()" onclick="event.stopPropagation()" style="font-size:0.9rem; padding:5px; width:100%; margin-top:5px;">
+                    <select id="reg-flag-select" style="font-size:0.9rem; padding:5px; width:100%; margin-top:5px;">
                         <option value="🇪🇸">🇪🇸 España</option>
                         <option value="🇬🇧">🇬🇧 UK</option>
                         <option value="🇫🇷">🇫🇷 Francia</option>
@@ -68,23 +69,5 @@
 
     <script src="assets/js/config.js"></script>
     <script src="assets/js/auth.js"></script>
-    
-    <script>
-        // Scripts visuales inline para el registro
-        function randomizeRegAvatar() {
-            const seed = Math.random().toString(36).substring(7);
-            document.getElementById('reg-avatar-preview').src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
-            selectVisualType('IMAGE');
-        }
-        function updateFlagPreview() {
-            const val = document.getElementById('reg-flag-select').value;
-            document.getElementById('reg-flag-preview').innerText = val;
-            selectVisualType('FLAG');
-        }
-        function selectVisualType(type) {
-            if(type === 'IMAGE') document.getElementById('radio-image').checked = true;
-            else document.getElementById('radio-flag').checked = true;
-        }
-    </script>
 </body>
 </html>

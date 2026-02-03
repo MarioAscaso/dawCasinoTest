@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lobby - DawCasino</title>
+    <link rel="stylesheet" href="assets/css/base.css">
     <link rel="stylesheet" href="assets/css/lobby.css">
 </head>
 <body>
 
     <div class="lobby-container">
         <div class="user-info">
-            <button class="settings-btn" onclick="window.location.href='settings.html'" title="Ir a Ajustes">⚙️</button>
+            <button id="btn-settings" class="settings-btn" title="Ir a Ajustes">⚙️</button>
             
             <img id="lobby-avatar" src="" class="big-avatar hidden">
             <span id="lobby-flag" class="big-flag hidden"></span>
@@ -18,12 +19,12 @@
             <h1 class="lobby-welcome">Hola, <span id="username-display" class="username-accent">...</span></h1>
             <p>Saldo actual: <strong class="balance-amount"><span id="balance-display">0</span> €</strong></p>
             
-            <button class="btn-secondary small btn-logout" onclick="logout()">Cerrar Sesión</button>
+            <button id="btn-logout" class="btn-secondary small btn-logout">Cerrar Sesión</button>
         </div>
 
         <h2>Elige tu juego</h2>
         <div class="games-grid">
-            <div class="game-card" onclick="window.location.href='blackjack.html'">
+            <div id="card-blackjack" class="game-card">
                 <div class="game-icon">🃏</div>
                 <h3 class="game-title">BlackJack</h3>
                 <span class="play-now-text">Jugar Ahora</span>

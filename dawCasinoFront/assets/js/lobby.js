@@ -1,18 +1,41 @@
 let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Verificar sesión local
+    // 1. Configurar botones
+    setupEventListeners();
+
+    // 2. Verificar sesión
     const userStored = localStorage.getItem('user');
     if (!userStored) { window.location.href = 'login.html'; return; }
     
     currentUser = JSON.parse(userStored);
     
-    // 2. Sincronizar datos frescos del servidor
+    // 3. Sincronizar y Renderizar
     await syncUser();
-    
-    // 3. Renderizar Lobby
     renderLobby();
 });
+
+function setupEventListeners() {
+    const btnSettings = document.getElementById('btn-settings');
+    const btnLogout = document.getElementById('btn-logout');
+    const cardBlackjack = document.getElementById('card-blackjack');
+
+    if(btnSettings) {
+        btnSettings.addEventListener('click', () => {
+            window.location.href = 'settings.html';
+        });
+    }
+
+    if(btnLogout) {
+        btnLogout.addEventListener('click', logout);
+    }
+
+    if(cardBlackjack) {
+        cardBlackjack.addEventListener('click', () => {
+            window.location.href = 'blackjack.html';
+        });
+    }
+}
 
 async function syncUser() {
     try {
@@ -22,7 +45,7 @@ async function syncUser() {
             localStorage.setItem('user', JSON.stringify(currentUser));
         }
     } catch(e) {
-        console.warn("No se pudo sincronizar usuario:", e);
+        console.warn("Error sync:", e);
     }
 }
 
@@ -36,7 +59,6 @@ function renderLobby() {
     imgEl.classList.add('hidden');
     flagEl.classList.add('hidden');
 
-    // Lógica para saber si mostrar Bandera o Imagen
     const isFlag = currentUser.avatarType && currentUser.avatarType.length < 10 && currentUser.avatarType !== "IMAGE";
     
     if (isFlag) {
@@ -53,5 +75,3 @@ function logout() {
     localStorage.removeItem('user');
     window.location.href = 'login.html';
 }
-
-// 🗑️ ELIMINADAS: openSettings, closeSettings, saveSettings... (Ahora están en settings.js)
